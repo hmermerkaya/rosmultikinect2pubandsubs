@@ -1,38 +1,21 @@
-# Copyright 2015, Giacomo Dabisias"
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-# @Author 
-# Giacomo Dabisias, PhD Student
-# PERCRO, (Laboratory of Perceptual Robotics)
-# Scuola Superiore Sant'Anna
-# via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
+
 
 cmake_minimum_required(VERSION 2.8)
 Project(kinect2grabber CXX)
 
 set(CMAKE_CXX_FLAGS   "${CMAKE_CXX_FLAGS} -std=c++11") 
 set(CMAKE_CXX_FLAGS   "${CMAKE_CXX_FLAGS} -march=native")
-set(CMAKE_BUILD_TYPE  Release)
+set(CMAKE_BUILD_TYPE  Debug)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/modules")
 set(INCLUDE           "${CMAKE_SOURCE_DIR}/include")
+
 
 option(WITH_OPENCL "adds opencl support for freenect2" OFF)
 if(${WITH_OPENCL})
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWITH_OPENCL")
 endif()
 
-option(WITH_CUDA "adds cuda support for freenect2" OFF)
+option(WITH_CUDA "adds cuda support for freenect2" ON)
 if(${WITH_CUDA})
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWITH_CUDA")
 endif()
@@ -45,7 +28,7 @@ if(${WITH_SERIALIZATION})
 	set(BOOST_LIBS "boost_serialization")
 endif()
 
-option(WITH_ROS "adds support for ROS" OFF)
+option(WITH_ROS "adds support for ROS" ON)
 if(${WITH_ROS})
 	find_package(catkin REQUIRED COMPONENTS   roscpp std_msgs pcl_conversions  pcl_ros
 						sensor_msgs cv_bridge image_transport tf
@@ -67,20 +50,79 @@ if(${WITH_PCL})
 endif()
 
 find_package(OpenCV     REQUIRED)
-find_package(Freenect2  REQUIRED)
-
+message("opencv ${OpenCV_INCLUDE_DIRS}")
+#find_package(Freenect2  REQUIRE)
+find_package(freenect2 REQUIRED HINTS "$ENV{HOME}/freenect2")
 include_directories(${OpenCV_INCLUDE_DIRS})
-include_directories(${FREENECT2_INCLUDE_DIRS})
 include_directories(${INCLUDE})
+include_directories(  ${freenect2_INCLUDE_DIRS})
+
+
+#set(CMAKE_CXX_FLAGS "-D__STDC_CONSTANT_MACROS")
+#
+#
+#
+##include_directories("/home/hamit/ffmpeg_build/include/")
+#find_package (FFmpeg REQUIRED)
+#
+## FFMPEG_FOUND - system has ffmpeg or libav
+## FFMPEG_INCLUDE_DIR - the	 ffmpeg include directory
+## FFMPEG_LIBRARIES
+## FFMPEG_LIBAVCODEC
+## FFMPEG_LIBAVFORMAT
+## FFMPEG_LIBAVUTIL
+#if(FFMPEG_FOUND)
+#  message("Found FFMPEG/LibAV libraries ${FFMPEG_INCLUDE_DIR}")
+#  include_directories(${FFMPEG_INCLUDE_DIR})
+#  
+#else()
+#  message("Can't find libavcodec, libavformat or libavutil. Add them!")
+#endif()
+
+include_directories(/home/hamit/ffmpeg_build/include)
+#include_directories(/home/hamit/NetBeansProjects/ThreeDContainer)
+#link_directories(/home/hamit/NetBeansProjects/ThreeDContainer/dist/Release/GNU-Linux)
+
+link_directories(/usr/lib/x86_64-linux-gnu/)
+link_directories(/home/hamit/ffmpeg_build/lib)
+
+#find_library(ffmpeg
+#    NAMES avformat 
+#    HINTS "/home/hamit/ffmpeg_build/lib"
+#)
+#
+#message("ffmpeg ${ffmpeg}")
+
+set(ffmpeg_lib_path /home/hamit/ffmpeg_build/lib)
+#add_library(libavcodec STATIC IMPORTED) # or STATIC instead of SHARED
+#set_target_properties(ThreeDContainer PROPERTIES
+#  IMPORTED_LOCATION "/home/hamit/ffmpeg_build/lib/libavcodec.a"
+#  INTERFACE_INCLUDE_DIRECTORIES "/home/hamit/ffmpeg_build/include"
+#)
+
+#find_package(PkgConfig REQUIRED)
+
+
 
 add_executable(Kinect2Grabber      test.cpp)
 add_executable(MultiKinect2Grabber multi_test.cpp)
 
-target_link_libraries(Kinect2Grabber      ${OpenCV_LIBS} ${FREENECT2_LIBRARY} ${PCL_LIBRARIES} ${BOOST_LIBS})
-target_link_libraries(MultiKinect2Grabber ${OpenCV_LIBS} ${FREENECT2_LIBRARY} ${PCL_LIBRARIES} ${BOOST_LIBS})
+target_link_libraries(Kinect2Grabber      ${OpenCV_LIBS} ${freenect2_LIBRARY} ${PCL_LIBRARIES} ${BOOST_LIBS})
+target_link_libraries(MultiKinect2Grabber ${OpenCV_LIBS} ${freenect2_LIBRARY} ${PCL_LIBRARIES} ${BOOST_LIBS})
 
 if(${WITH_ROS})
-	add_executable(RosKinect2Grabber test_ros.cpp)
-	target_link_libraries(RosKinect2Grabber ${catkin_LIBRARIES} ${OpenCV_LIBS} ${FREENECT2_LIBRARY} ${PCL_LIBRARIES} ${BOOST_LIBS})
+		add_executable(rosKinect2Grabber test_ros.cpp)
+        target_link_libraries(rosKinect2Grabber ${catkin_LIBRARIES} ${OpenCV_LIBS} ${freenect2_LIBRARY} ${PCL_LIBRARIES} ${BOOST_LIBS})
+        add_executable(rosMultiKinect2Publisher rosMultiKinect2Publisher.cpp)
+        target_link_libraries(rosMultiKinect2Publisher   ${catkin_LIBRARIES} ${OpenCV_LIBS} ${freenect2_LIBRARY} ${PCL_LIBRARIES} ${BOOST_LIBS} )
+        add_executable(rosMultiKinect2Subscriber    rosMultiKinect2Subscriber.cpp)
+        target_link_libraries(rosMultiKinect2Subscriber ${catkin_LIBRARIES} ${OpenCV_LIBS} ${freenect2_LIBRARY} ${PCL_LIBRARIES} ${BOOST_LIBS}   )
+		add_executable(rosMultiKinect2Subscriber2    rosMultiKinect2Subscriber2.cpp)
+        #target_link_libraries(rosMultiKinect2Subscriber2 ${catkin_LIBRARIES} ${OpenCV_LIBS} ${freenect2_LIBRARY} ${PCL_LIBRARIES} ${BOOST_LIBS} draco ${ffmpeg_lib_path}/libavformat.a ${ffmpeg_lib_path}/libavcodec.a  ${ffmpeg_lib_path}/libswscale.a ${ffmpeg_lib_path}/libavutil.a ${ffmpeg_lib_path}/libavfilter.a  ${ffmpeg_lib_path}/libswresample.a ${ffmpeg_lib_path}/libavdevice.a ${ffmpeg_lib_path}/libpostproc.a pthread fdk-aac mp3lame  ass theora ogg  x264 x265 vpx vorbis vorbisfile vorbisenc theoraenc theoradec opus  z lzma bz2 rt)
+        target_link_libraries(rosMultiKinect2Subscriber2 ${catkin_LIBRARIES} ${OpenCV_LIBS} ${freenect2_LIBRARY} ${PCL_LIBRARIES} ${BOOST_LIBS} draco avformat avcodec swscale avutil avfilter swresample avdevice postproc pthread fdk-aac mp3lame  ass theora ogg  x264 x265 vpx vorbis vorbisfile vorbisenc theoraenc theoradec opus  z lzma bz2 rt )
+		
+		add_executable(rosPairKinectv2Viewer    rosPairKinectv2Viewer.cpp)	
+		target_link_libraries(rosPairKinectv2Viewer ${catkin_LIBRARIES} ${OpenCV_LIBS} ${freenect2_LIBRARY} ${PCL_LIBRARIES} ${BOOST_LIBS})
+		
 endif()
 

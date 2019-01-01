@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
   // Set te processor to input value or to default OPENGL
   Processor freenectprocessor = OPENGL;
   freenectprocessor = static_cast<Processor>(atoi(argv[1]));
-
+freenectprocessor=CUDA;
   // check if mirroring is enabled
   bool mirroring = atoi(argv[argc - 1]) == 1 ? true : false;
   if(mirroring)

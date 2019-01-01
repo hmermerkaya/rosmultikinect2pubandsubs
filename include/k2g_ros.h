@@ -16,21 +16,24 @@ class K2GRos
 {
 
 public:
-
-	K2GRos(Processor freenect_processor = CPU): k2g_(freenect_processor), 
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+	K2GRos(Processor freenect_processor = CPU, bool mirror = false, std::string serial = std::string()): k2g_(freenect_processor, mirror, serial),
 			cloud_(new pcl::PointCloud<pcl::PointXYZRGB>(512, 424)),
 			size_color_(1920, 1080),
 		  	size_depth_(512, 424)
 	{
-		header_color_.frame_id = "kinect2_rgb_optical_frame";
-		header_depth_.frame_id = "kinect2_ir_optical_frame";
-		header_cloud_.frame_id = "kinect2_rgb_optical_frame";
+		header_color_.frame_id = "kinect2_rgb_optical_frame_"+serial;
+		header_depth_.frame_id = "kinect2_ir_optical_frame_"+serial;
+		header_cloud_.frame_id = "kinect2_rgb_optical_frame_"+serial;
 		
-		point_cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("/kinect2/hd/points", 1);
-		color_pub_ = nh_.advertise<sensor_msgs::Image>("/kinect2/hd/image_color", 1);
-		color_info_pub_ = nh_.advertise<sensor_msgs::CameraInfo>("/kinect2/hd/camera_info", 1);
-		depth_pub_ = nh_.advertise<sensor_msgs::Image>("/kinect2/sd/image_depth", 1);
-		depth_info_pub_ = nh_.advertise<sensor_msgs::CameraInfo>("/kinect2/sd/camera_info", 1);
+		point_cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("/kinect2_" + serial + "/hd/points", 10);
+		color_pub_ = nh_.advertise<sensor_msgs::Image>("/kinect2_" + serial + "/hd/image_color", 1);
+		color_info_pub_ = nh_.advertise<sensor_msgs::CameraInfo>("/kinect2_" + serial + "/hd/camera_info", 10);
+		depth_pub_ = nh_.advertise<sensor_msgs::Image>("/kinect2_" + serial + "/sd/image_depth", 1);
+		depth_info_pub_ = nh_.advertise<sensor_msgs::CameraInfo>("/kinect2_" + serial + "/sd/camera_info", 10);
+
+		depth_pubCompressed_ = nh_.advertise<sensor_msgs::CompressedImage>("/kinect2_" + serial + "/sd/image_depth/compressed", 10);
+		color_pubCompressed_ = nh_.advertise<sensor_msgs::CompressedImage>("/kinect2_" + serial + "/hd/image_color/compressed", 10);
 
 		libfreenect2::Freenect2Device::IrCameraParams ir = k2g_.getIrParameters();
 		libfreenect2::Freenect2Device::ColorCameraParams rgb = k2g_.getRgbParameters();
@@ -78,6 +81,37 @@ public:
 		color_pub_.publish(color_image_);
 
 	}
+
+	void publishDepthColorCompressedAndCameraInfos(const ros::Time & tm = ros::Time::now(), const bool full_hd = true, const bool remove_points = false){
+
+		initCompression(jpeg_quality, png_level, use_png);
+
+		cv::Mat tmp_depth, tmp_color;
+		k2g_.get(tmp_color, tmp_depth, full_hd, remove_points);
+                //std::cout<<"tmp_depth "<<tmp_depth.rows<<std::endl;
+		header_depth_.stamp = tm; //ros::Time::now();
+
+        createCompressed(tmp_depth, header_depth_,DEPTH_SD, depth_imageCompressed);
+              //  std::cout<<"after tmp_depth "<<tmp_depth.rows<<std::endl;
+
+		depth_pubCompressed_.publish(depth_imageCompressed);
+
+		header_color_.stamp = tm; //ros::Time::now();
+		createCompressed(tmp_color, header_color_,COLOR_HD, color_imageCompressed);
+		color_pubCompressed_.publish(color_imageCompressed);
+
+		camera_info_depth_.header=header_color_;
+		camera_info_color_.header=header_color_;
+		depth_info_pub_.publish(camera_info_depth_);
+		color_info_pub_.publish(camera_info_color_);
+
+
+//		header_color_.stamp = tm;//ros::Time::now();
+//		color_image_ = cv_bridge::CvImage(header_color_, "bgra8", tmp_color).toImageMsg();
+//		color_pub_.publish(color_image_);
+
+	}
+
 
 	// All frame and cloud are aligned. There is a small overhead in the double call to registration->apply which has to be removed
 	void publishAll(const bool full_hd = true, const bool remove_points = false){
@@ -128,6 +162,89 @@ public:
 	}
    
 private:
+	  enum Image
+	  {
+	    IR_SD = 0,
+	    IR_SD_RECT,
+
+	    DEPTH_SD,
+	    DEPTH_SD_RECT,
+	    DEPTH_HD,
+	    DEPTH_QHD,
+
+	    COLOR_SD_RECT,
+	    COLOR_HD,
+	    COLOR_HD_RECT,
+	    COLOR_QHD,
+	    COLOR_QHD_RECT,
+
+	    MONO_HD,
+	    MONO_HD_RECT,
+	    MONO_QHD,
+	    MONO_QHD_RECT,
+
+	    COUNT
+	  };
+
+	void initCompression(const int32_t jpegQuality, const int32_t pngLevel, const bool use_png)
+		  {
+			compressionParams.resize(7, 0);
+			compressionParams[0] = CV_IMWRITE_JPEG_QUALITY;
+			compressionParams[1] = jpegQuality;
+			compressionParams[2] = CV_IMWRITE_PNG_COMPRESSION;
+			compressionParams[3] = pngLevel;
+			compressionParams[4] = CV_IMWRITE_PNG_STRATEGY;
+			compressionParams[5] = CV_IMWRITE_PNG_STRATEGY_RLE;
+			compressionParams[6] = 0;
+
+			if(use_png)
+			{
+			  compression16BitExt = ".png";
+			  compression16BitString = sensor_msgs::image_encodings::TYPE_16UC1 + "; png compressed";
+			}
+			else
+			{
+			  compression16BitExt = ".tif";
+			  compression16BitString = sensor_msgs::image_encodings::TYPE_16UC1 + "; tiff compressed";
+			}
+		}
+
+	void createCompressed(const cv::Mat &image, const std_msgs::Header &header, const Image type, sensor_msgs::CompressedImage &msgImage) const
+	  {
+	    msgImage.header = header;
+
+	    switch(type)
+	    {
+	    case IR_SD:
+	    case IR_SD_RECT:
+	    case DEPTH_SD:
+	    case DEPTH_SD_RECT:
+	    case DEPTH_HD:
+	    case DEPTH_QHD:
+	      msgImage.format = compression16BitString;
+	      cv::imencode(compression16BitExt, image, msgImage.data, compressionParams);
+	      break;
+	    case COLOR_SD_RECT:
+	    case COLOR_HD:
+	    case COLOR_HD_RECT:
+	    case COLOR_QHD:
+	    case COLOR_QHD_RECT:
+	      msgImage.format = sensor_msgs::image_encodings::BGR8 + "; jpeg compressed bgr8";
+	      cv::imencode(".jpg", image, msgImage.data, compressionParams);
+	      break;
+	    case MONO_HD:
+	    case MONO_HD_RECT:
+	    case MONO_QHD:
+	    case MONO_QHD_RECT:
+	      msgImage.format = sensor_msgs::image_encodings::TYPE_8UC1 + "; jpeg compressed ";
+	      cv::imencode(".jpg", image, msgImage.data, compressionParams);
+	      break;
+	    case COUNT:
+	      return;
+	    }
+	  }
+
+
 
 	pcl::PointCloud<pcl::PointXYZRGB>::Ptr getCloud(){
 		return k2g_.getCloud();
@@ -236,16 +353,24 @@ private:
 	}
 
 	ros::NodeHandle nh_;
-	ros::Publisher point_cloud_pub_, color_pub_, color_info_pub_, depth_pub_, depth_info_pub_;
+	ros::Publisher point_cloud_pub_, color_pub_, color_pubCompressed_, color_info_pub_, depth_pub_, depth_pubCompressed_, depth_info_pub_;
     sensor_msgs::PointCloud2 point_cloud_2_;
     boost::shared_ptr<pcl::PointCloud<pcl::PointXYZRGB>> cloud_;
     cv::Mat color_, depth_;
     cv::Size size_color_, size_depth_;
     std_msgs::Header header_depth_, header_color_, header_cloud_;
     sensor_msgs::Image depth_image_;
+    sensor_msgs::CompressedImage depth_imageCompressed;
     sensor_msgs::Image::Ptr color_image_;
+    sensor_msgs::CompressedImage color_imageCompressed;
+    int32_t jpeg_quality=90, png_level=1;
+    bool use_png=false;
     K2G k2g_;
     libfreenect2::SyncMultiFrameListener * listener_;
     sensor_msgs::CameraInfo  camera_info_color_, camera_info_depth_;
+    std::vector<int> compressionParams;
+    std::string compression16BitExt, compression16BitString, baseNameTF;
+
+
 
 };
