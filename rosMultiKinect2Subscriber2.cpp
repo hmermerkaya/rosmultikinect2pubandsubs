@@ -969,9 +969,11 @@ class Producer
 //					  cout << "Out of Range error.";
 //				  }
 
-       			string name = "Debug/depth_recovered_" + to_string(framecnt0) + "_"+to_string(camcnt0)+ ".ply";
-       	//		pcl::io::savePCDFile( name, *cloud, true ); // Binary format
-       		//	pcl::io::savePLYFileBinary( name, *cloud ); // Binary format
+       			string name = "Debug/depth_recovered_" + to_string(framecnt0) + "_"+to_string(camcnt0)+ ".pcd";
+       	     	pcl::io::savePCDFile( name, *cloud, true ); // Binary format
+
+       			 name = "Debug/depth_recovered_" + to_string(framecnt0) + "_"+to_string(camcnt0)+ ".ply";
+       			//pcl::io::savePLYFileBinary( name, *cloud ); // Binary format
        			plyWriter.write(name, *cloud, true, false);
        			camcnt0++;
 
@@ -1318,9 +1320,9 @@ class Consumer
       std::string timestamp = boost::posix_time::to_iso_string (boost::posix_time::microsec_clock::local_time ());
 
       std::vector<uchar> buff;//buffer for coding
-//	  std::vector<int> param(2);
-//	  param[0] = cv::IMWRITE_JPEG_QUALITY;
-//	  param[1] = 80;
+	  std::vector<int> param(2);
+	  param[0] = cv::IMWRITE_JPEG_QUALITY;
+	  param[1] = 80;
 
 
       for (int i=0;i<colorClouds.size();++i) {
@@ -1372,7 +1374,7 @@ class Consumer
     	 	}
     	  t++;
 
-    	  cv::imencode(".jpg",  colorClouds[i].second , buff);
+    	  cv::imencode(".jpg",  colorClouds[i].second , buff, params);
     	  size = buff.size();//colorClouds[i].second.total() * colorClouds[i].second.elemSize();
 		  if (!container.writeTextureToContainer((char*) buff.data(), size, t*100000, STREAM_INDEX_SPACE_CONTAINER_TEXTURE)) {
 							cout << "Cannot write texture to container" << endl;

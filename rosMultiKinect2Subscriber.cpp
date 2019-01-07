@@ -1499,31 +1499,31 @@ class Consumer
 		//    colorClouds[i].first=downsample(colorClouds[i].first, 0.005);
 
 
-//    	  try {
-//    		  if (i!=0) pcl::transformPointCloud ( *(colorClouds[i].first), *(colorClouds[i].first), transMatrices_.at(i-1) );
-//    	   //   std::cout<<"transform : \n"<<transMatrices_.at(i);
-//    	  }
-//    	  catch (const std::out_of_range& e) {
-//    	      cout << "Out of Range error.";
-//    	  }
+    	  try {
+    		  if (i!=0) pcl::transformPointCloud ( *(colorClouds[i].first), *(colorClouds[i].first), transMatrices_.at(i-1) );
+    	   //   std::cout<<"transform : \n"<<transMatrices_.at(i);
+    	  }
+    	  catch (const std::out_of_range& e) {
+    	      cout << "Out of Range error.";
+    	  }
 
     	  //  std::cout<<"transform "<<
 		 // plyWriter.write ("frame-" + time + "_" + std::to_string(i)+".ply", *(colorClouds[i].first), true, false);
 		 // cv::imwrite("frame-" + time + "_" + std::to_string(i) + ".jpg", *(colorClouds[i].second) );
     	//long startTime=getMicrotime();
     	  std::string timestamp= std::to_string(colorClouds[i].first->header.stamp/1000000000.);
-    	  plyWriter.write (timestamp +"_" + std::to_string(i)+".ply", *(colorClouds[i].first), true, false);
+    	//  plyWriter.write (timestamp +"_" + std::to_string(i)+".ply", *(colorClouds[i].first), true, false);
 
-    	 std::vector<int> compression_params;
-    	     compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
-    	     compression_params.push_back(9);
+    //	 std::vector<int> compression_params;
+    //	     compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+    //	     compression_params.push_back(9);
 
     	 //  cv::cvtColor((colorClouds[i].second), (colorClouds[i].second),CV_BGRA2BGR ) ;
 
-    	  cv::imwrite(timestamp +"_" + std::to_string(i)+".png", (colorClouds[i].second) );
+    	  cv::imwrite(timestamp +"_" + std::to_string(i)+".jpg", (colorClouds[i].second) );
 
 
-    	//  writer_.writeBinaryCompressed (timestamp +"_" + std::to_string(i)+".pcd" , *(colorClouds[i].first));
+    	  writer_.writeBinaryCompressed (timestamp +"_" + std::to_string(i)+".pcd" , *(colorClouds[i].first));
 
     	//  long endTime=getMicrotime();
 

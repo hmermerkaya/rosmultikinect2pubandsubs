@@ -110,6 +110,12 @@ add_executable(MultiKinect2Grabber multi_test.cpp)
 target_link_libraries(Kinect2Grabber      ${OpenCV_LIBS} ${freenect2_LIBRARY} ${PCL_LIBRARIES} ${BOOST_LIBS})
 target_link_libraries(MultiKinect2Grabber ${OpenCV_LIBS} ${freenect2_LIBRARY} ${PCL_LIBRARIES} ${BOOST_LIBS})
 
+add_executable(retransformpcds   retransformpcds.cpp)
+target_link_libraries(retransformpcds ${OpenCV_LIBS} ${freenect2_LIBRARY} ${PCL_LIBRARIES} ${BOOST_LIBS})
+
+
+
+
 if(${WITH_ROS})
 		add_executable(rosKinect2Grabber test_ros.cpp)
         target_link_libraries(rosKinect2Grabber ${catkin_LIBRARIES} ${OpenCV_LIBS} ${freenect2_LIBRARY} ${PCL_LIBRARIES} ${BOOST_LIBS})
