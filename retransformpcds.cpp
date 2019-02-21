@@ -188,14 +188,15 @@ bool is_file_exist(const char *fileName)
 
 
 
+
 int main(int argc, char **argv) {
 	pcl::PCDWriter writer_;
 	pcl::PLYWriter plyWriter;
 
-	  std::string input_filenames, output_dir;
-	  if (pcl::console::parse_argument (argc, argv, "-input_filenames", input_filenames) != -1)
+	  std::string input_filename, output_dir;
+	  if (pcl::console::parse_argument (argc, argv, "-input_filenames", input_filename) != -1)
 	  {
-	    PCL_INFO ("Input filenames given as %s. Batch process mode on.\n", input_filenames.c_str ());
+	    PCL_INFO ("Input filenames given as %s. Batch process mode on.\n", input_filename.c_str ());
 	    if (pcl::console::parse_argument (argc, argv, "-output_dir", output_dir) == -1)
 	    {
 	      PCL_ERROR ("Need an output directory! Please use -output_dir to continue.\n");
@@ -267,13 +268,13 @@ int main(int argc, char **argv) {
 		produceTranformMatrices("./", transformMatrices);
 
 
-		std::ifstream infile(input_filenames);
+	//	std::ifstream infile(input_filenames);
 
-		std::string filename;
-		while (infile >> filename)
-		{
+	//	std::string filename;
+	//	while (infile >> filename)
+	//	{
 			for (int i=0; i<6; ++i) {
-				std::string tmp=filename+"_"+std::to_string(i)+".pcd";
+				std::string tmp=input_filename+"_"+std::to_string(i)+".pcd";
 				//std::cout<<"filename: "<<tmp<<std::endl;
 				if (is_file_exist(tmp.c_str())) {
 					std::cout<<"file exists: "<<tmp<<std::endl;
@@ -287,13 +288,6 @@ int main(int argc, char **argv) {
 					}
 
 
-					try {
-						  if (i!=0) pcl::transformPointCloud ( *cloud, *cloud, transformMatrices.at(i-1).inverse() );
-					   //   std::cout<<"transform : \n"<<transMatrices_.at(i);
-					  }
-					  catch (const std::out_of_range& e) {
-						  cout << "Out of Range error.";
-					  }
 
 
 					  float radius=2.5;
@@ -312,6 +306,17 @@ int main(int argc, char **argv) {
 
 
 
+
+					  try {
+						  if (i!=0) pcl::transformPointCloud ( *cloud, *cloud, transformMatrices.at(i-1) );
+					   //   std::cout<<"transform : \n"<<transMatrices_.at(i);
+					  }
+					  catch (const std::out_of_range& e) {
+						  cout << "Out of Range error.";
+					  }
+
+
+
 					// std::string command="system(/home/hamit/pcl-sw/pcl-trunk/build/bin/pcl_radius_filter -radius 2.5 " ;
 					 //command = command + output_dir+"/"+tmp + " " + output_dir+"/"+tmp ;
 
@@ -320,18 +325,18 @@ int main(int argc, char **argv) {
 //					 		PCL_ERROR ("Couldn't read file\n");
 //					 		return (-1);
 //					 }
-//
+/*//
 					try {
 					  if (i!=0) pcl::transformPointCloud ( *cloud, *cloud, transformMatrices.at(i-1) );
 					//   std::cout<<"transform : \n"<<transMatrices_.at(i);
 					}
 					catch (const std::out_of_range& e) {
 					  cout << "Out of Range error.";
-					}
+					}*/
 
-					  writer_.writeBinaryCompressed (output_dir+"/"+tmp , *cloud);
+		//			  writer_.writeBinaryCompressed (output_dir+"/"+tmp , *cloud);
 
-					  plyWriter.write (output_dir+"/"+filename+"_"+std::to_string(i)+".ply", *cloud, true, false);
+					  plyWriter.write (output_dir+"/"+input_filename+"_"+std::to_string(i)+".ply", *cloud, true, false);
 
 
 
@@ -347,7 +352,7 @@ int main(int argc, char **argv) {
 
 
 
-		}
+		//}
 
 
 

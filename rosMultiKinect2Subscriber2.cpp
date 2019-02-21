@@ -969,12 +969,12 @@ class Producer
 //					  cout << "Out of Range error.";
 //				  }
 
-       			string name = "Debug/depth_recovered_" + to_string(framecnt0) + "_"+to_string(camcnt0)+ ".pcd";
+       			string name = "Debug/recovered_" + to_string(framecnt0) + "_"+to_string(camcnt0)+ ".pcd";
        	     	pcl::io::savePCDFile( name, *cloud, true ); // Binary format
 
-       			 name = "Debug/depth_recovered_" + to_string(framecnt0) + "_"+to_string(camcnt0)+ ".ply";
+       		//	 name = "Debug/depth_recovered_" + to_string(framecnt0) + "_"+to_string(camcnt0)+ ".ply";
        			//pcl::io::savePLYFileBinary( name, *cloud ); // Binary format
-       			plyWriter.write(name, *cloud, true, false);
+       		//	plyWriter.write(name, *cloud, true, false);
        			camcnt0++;
 
 
@@ -986,7 +986,7 @@ class Producer
        			   		   		   			camcnt1=0;
        			   			}
        			ofstream ofs;
-       			string name ="Debug/color_recovered_" + to_string(framecnt1) + "_"+to_string(camcnt1)+ ".jpg";
+       			string name ="Debug/recovered_" + to_string(framecnt1) + "_"+to_string(camcnt1)+ ".jpg";
        			ofs.open(name);
        			ofs.write(data, length);
        			ofs.close();
@@ -1374,7 +1374,7 @@ class Consumer
     	 	}
     	  t++;
 
-    	  cv::imencode(".jpg",  colorClouds[i].second , buff, params);
+    	  cv::imencode(".jpg",  colorClouds[i].second , buff);
     	  size = buff.size();//colorClouds[i].second.total() * colorClouds[i].second.elemSize();
 		  if (!container.writeTextureToContainer((char*) buff.data(), size, t*100000, STREAM_INDEX_SPACE_CONTAINER_TEXTURE)) {
 							cout << "Cannot write texture to container" << endl;
@@ -2090,6 +2090,20 @@ void produceTranformMatrices(const std::string &folder, vecMatrix4f & transformM
 
 
 
+//	 std::vector<Eigen::Matrix<float,4,4,Eigen::RowMajor>, Eigen::aligned_allocator<Eigen::Matrix<float,4,4,Eigen::RowMajor>>> globalTrasformation(filenames.size());
+//	 unsigned i=0;
+//	 for (const auto & file: filenames ){
+//		 readTransformFromText(file, globalTrasformation[i] );
+//		 if (i!=0) globalTrasformation[i]=globalTrasformation[i-1]*globalTrasformation[i];
+//		 transformMatrices.push_back(globalTrasformation[i]);
+//
+//		 i++;
+//	 }
+
+
+
+
+
 
 }
 bool readDepthandJPFfromContainer() {
@@ -2339,7 +2353,7 @@ int main(int argc, char **argv)
 //			cout << "testWriteContainterOBJandJPG: " << "FAILED" << endl;
 //		}
 
-	producer.createPointCloudsfromContainerPNG("test_3d_video_ply_jpg.mp4");
+producer.createPointCloudsfromContainerPNG("test_3d_video_ply_jpg.mp4");
 
 	//createPointCloudsfromContainerPNG("test_3d_video_ply_jpg", producer.mapSerialDepthLookups
 

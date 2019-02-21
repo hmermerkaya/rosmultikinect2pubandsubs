@@ -112,6 +112,7 @@ private:
   pcl::PCDWriter writer;
   std::ostringstream oss;
   std::vector<int> params;
+ // int file_cnt=0;
 
 public:
   Receiver(const std::vector<std::string>  &serials, const bool useExact, const bool useCompressed) // @suppress("Class members should be properly initialized")
@@ -531,7 +532,7 @@ private:
    cv::moveWindow("Color Image 2", 800,0);
    // cv::namedWindow("Image Viewer");
    // oss << "starting...";
-
+   int file_cnt=0;
     for(; running && ros::ok();)
     {
       if(updateImage)
@@ -575,14 +576,15 @@ private:
       case 's':
     	  printf("saving colors  \n");
     	  std::cout<<"size of dpth : "<<color1.elemSize()<<" "<< color1.elemSize1()<<std::endl;
-    	  cv::imwrite(frame_id1+"_0.png", color1, params);
-    	  cv::imwrite(frame_id2+"_1.png", color2, params);
+    	  cv::imwrite(frame_id1 + "_" + std::to_string(file_cnt)+ "_0.png", color1, params);
+    	  cv::imwrite(frame_id2 + "_" + std::to_string(file_cnt)+ "_1.png", color2, params);
 
     	  printf("saving depths \n");
 
     	  std::cout<<"size of dpth : "<<depth1.elemSize()<<" "<< depth1.elemSize1()<<std::endl;
-    	  cv::imwrite(frame_id1+"_0_depth.png", depth1, params);
-    	  cv::imwrite(frame_id2+"_1_depth.png", depth2, params);
+    	  cv::imwrite(frame_id1 + "_" + std::to_string(file_cnt) + "_0_depth.png", depth1, params);
+    	  cv::imwrite(frame_id2 + "_" + std::to_string(file_cnt) + "_1_depth.png", depth2, params);
+    	  file_cnt++;
           break;
       }
     }

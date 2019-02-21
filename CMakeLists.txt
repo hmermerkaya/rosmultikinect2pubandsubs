@@ -113,6 +113,9 @@ target_link_libraries(MultiKinect2Grabber ${OpenCV_LIBS} ${freenect2_LIBRARY} ${
 add_executable(retransformpcds   retransformpcds.cpp)
 target_link_libraries(retransformpcds ${OpenCV_LIBS} ${freenect2_LIBRARY} ${PCL_LIBRARIES} ${BOOST_LIBS})
 
+add_executable(meshlab_cams   meshlab_cams.cpp)
+target_link_libraries(meshlab_cams ${OpenCV_LIBS} ${freenect2_LIBRARY} ${PCL_LIBRARIES} ${BOOST_LIBS})
+
 
 
 
@@ -129,6 +132,8 @@ if(${WITH_ROS})
 		
 		add_executable(rosPairKinectv2Viewer    rosPairKinectv2Viewer.cpp)	
 		target_link_libraries(rosPairKinectv2Viewer ${catkin_LIBRARIES} ${OpenCV_LIBS} ${freenect2_LIBRARY} ${PCL_LIBRARIES} ${BOOST_LIBS})
+		add_executable(rosPairKinectv2Viewer2    rosPairKinectv2Viewer2.cpp)	
+		target_link_libraries(rosPairKinectv2Viewer2 ${catkin_LIBRARIES} ${OpenCV_LIBS} ${freenect2_LIBRARY} ${PCL_LIBRARIES} ${BOOST_LIBS})
 		
 endif()
 

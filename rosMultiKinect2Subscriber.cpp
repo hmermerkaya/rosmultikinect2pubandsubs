@@ -1487,6 +1487,11 @@ class Consumer
     {
      // std::string time = boost::posix_time::to_iso_string (boost::posix_time::microsec_clock::local_time ());
 
+	  std::vector<int> param(2);
+	  param[0] = cv::IMWRITE_JPEG_QUALITY;
+	  param[1] = 80;
+
+
       for (int i=0;i<colorClouds.size();++i) {
 		 // stringstream ss;
 		  //ss << "frame-" << time <<"_"<<i<< ".ply";
@@ -1498,21 +1503,21 @@ class Consumer
 		  // colorClouds[i].first=removeOutliers(colorClouds[i].first, 0.03, 50);
 		//    colorClouds[i].first=downsample(colorClouds[i].first, 0.005);
 
-
-    	  try {
-    		  if (i!=0) pcl::transformPointCloud ( *(colorClouds[i].first), *(colorClouds[i].first), transMatrices_.at(i-1) );
-    	   //   std::cout<<"transform : \n"<<transMatrices_.at(i);
-    	  }
-    	  catch (const std::out_of_range& e) {
-    	      cout << "Out of Range error.";
-    	  }
+//
+//    	  try {
+//    		  if (i!=0) pcl::transformPointCloud ( *(colorClouds[i].first), *(colorClouds[i].first), transMatrices_.at(i-1) );
+//    	   //   std::cout<<"transform : \n"<<transMatrices_.at(i);
+//    	  }
+//    	  catch (const std::out_of_range& e) {
+//    	      cout << "Out of Range error.";
+//    	  }
 
     	  //  std::cout<<"transform "<<
 		 // plyWriter.write ("frame-" + time + "_" + std::to_string(i)+".ply", *(colorClouds[i].first), true, false);
 		 // cv::imwrite("frame-" + time + "_" + std::to_string(i) + ".jpg", *(colorClouds[i].second) );
     	//long startTime=getMicrotime();
-    	  std::string timestamp= std::to_string(colorClouds[i].first->header.stamp/1000000000.);
-    	//  plyWriter.write (timestamp +"_" + std::to_string(i)+".ply", *(colorClouds[i].first), true, false);
+    	  std::string timestamp= std::to_string(colorClouds[0].first->header.stamp/1000000000.);
+    //	  plyWriter.write (timestamp +"_" + std::to_string(i)+".ply", *(colorClouds[i].first), true, false);
 
     //	 std::vector<int> compression_params;
     //	     compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
@@ -1520,7 +1525,7 @@ class Consumer
 
     	 //  cv::cvtColor((colorClouds[i].second), (colorClouds[i].second),CV_BGRA2BGR ) ;
 
-    	  cv::imwrite(timestamp +"_" + std::to_string(i)+".jpg", (colorClouds[i].second) );
+    	  cv::imwrite(timestamp +"_" + std::to_string(i)+".jpg", (colorClouds[i].second), param );
 
 
     	  writer_.writeBinaryCompressed (timestamp +"_" + std::to_string(i)+".pcd" , *(colorClouds[i].first));

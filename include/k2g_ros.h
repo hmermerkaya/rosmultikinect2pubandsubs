@@ -363,7 +363,7 @@ private:
     sensor_msgs::CompressedImage depth_imageCompressed;
     sensor_msgs::Image::Ptr color_image_;
     sensor_msgs::CompressedImage color_imageCompressed;
-    int32_t jpeg_quality=90, png_level=1;
+    int32_t jpeg_quality= 50, png_level=1;
     bool use_png=false;
     K2G k2g_;
     libfreenect2::SyncMultiFrameListener * listener_;
